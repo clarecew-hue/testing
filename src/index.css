@@ -1,0 +1,60 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-serif: "Fraunces", Georgia, "Times New Roman", serif;
+
+  --color-cream: #fcf8f1;
+  --color-teal: #00787f;
+  --color-teal-dark: #0d4a4b;
+  --color-coral: #ff6b6b;
+  --color-olive: #718e02;
+  --color-gold: #f7d20d;
+
+  --color-needs: #00787f;
+  --color-needs-light: #d5eaeb;
+  --color-wants: #f7d20d;
+  --color-wants-light: #fdf3c0;
+  --color-debt: #ff6b6b;
+  --color-debt-light: #ffdcdc;
+  --color-future: #718e02;
+  --color-future-light: #e4edc9;
+  --color-income: #6b6b6b;
+  --color-income-light: #ededed;
+}
+
+html {
+  color-scheme: light;
+}
+
+body {
+  margin: 0;
+  background: var(--color-cream);
+  color: var(--color-teal-dark);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4 {
+  font-family: var(--font-serif);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+input, select, textarea, button {
+  font-family: inherit;
+}
+
+::-webkit-scrollbar {
+  height: 10px;
+  width: 10px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #d8cfc0;
+  border-radius: 999px;
+}
