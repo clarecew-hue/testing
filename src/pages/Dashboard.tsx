@@ -4,6 +4,7 @@ import Card from "../components/Card";
 import { useAppData } from "../context/AppContext";
 import {
   bucketTotals,
+  daysBetween,
   fullDateRange,
   safeToSpendPerWeek,
   topLeaks,
@@ -56,6 +57,10 @@ export default function Dashboard() {
   const missingBuckets = unbucketedCount(transactions);
 
   const donutData = SPENDING_BUCKETS.map((b) => ({ name: b, value: totals[b] })).filter((d) => d.value > 0);
+
+  const leftToSpend = totals.Income - totals.Needs - totals.Debt - totals["Future You"];
+  const weeksInRange = daysBetween(effectiveFrom, effectiveTo) / 7;
+  const weeksLabel = weeksInRange % 1 === 0 ? String(weeksInRange) : weeksInRange.toFixed(1);
 
   const scorecardRows: { key: keyof ResetScorecard; label: string; after: number }[] = [
     { key: "needs", label: "Needs", after: totals.Needs },
@@ -128,6 +133,19 @@ export default function Dashboard() {
         <div className="text-sm font-semibold uppercase tracking-wide opacity-90">Your One Number</div>
         <div className="mt-2 text-5xl font-bold">{money(weeklySafe)}</div>
         <div className="mt-2 text-white/90">safe to spend on Wants each week</div>
+
+        <div className="mx-auto mt-6 max-w-xs rounded-xl bg-white/10 p-4 text-left text-sm">
+          <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-white/70">
+            Week 3: here's the math
+          </p>
+          <MathRow label="Income" value={totals.Income} />
+          <MathRow label="− Needs" value={totals.Needs} />
+          <MathRow label="− Debt" value={totals.Debt} />
+          <MathRow label="− Future You" value={totals["Future You"]} />
+          <MathRow label="= Left to spend" value={leftToSpend} divider bold />
+          <MathRow label={`÷ ${weeksLabel} weeks in range`} />
+          <MathRow label="= Weekly number" value={weeklySafe} divider bold />
+        </div>
       </Card>
 
       <div className="grid gap-6 lg:grid-cols-2">
@@ -294,6 +312,25 @@ export default function Dashboard() {
           </div>
         </Card>
       </div>
+    </div>
+  );
+}
+
+function MathRow({
+  label,
+  value,
+  divider = false,
+  bold = false,
+}: {
+  label: string;
+  value?: number;
+  divider?: boolean;
+  bold?: boolean;
+}) {
+  return (
+    <div className={`flex items-baseline justify-between gap-3 py-1 ${divider ? "mt-1 border-t border-white/25 pt-2" : ""}`}>
+      <span className={bold ? "font-semibold" : "text-white/85"}>{label}</span>
+      {value !== undefined && <span className={bold ? "font-semibold" : ""}>{money(value)}</span>}
     </div>
   );
 }
