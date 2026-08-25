@@ -2,10 +2,11 @@ import { useRef, useState } from "react";
 import Card from "../components/Card";
 import { useAppData } from "../context/AppContext";
 import { buildDedupeKey, importCsv, type ImportResult } from "../lib/csv";
+import { matchRule } from "../lib/rules";
 import type { Transaction } from "../types";
 
 export default function Upload() {
-  const { transactions, setTransactions } = useAppData();
+  const { transactions, setTransactions, rules } = useAppData();
   const [dragging, setDragging] = useState(false);
   const [results, setResults] = useState<ImportResult[] | null>(null);
   const [busy, setBusy] = useState(false);
@@ -29,7 +30,14 @@ export default function Upload() {
       allNew.push(...result.newTransactions);
     }
 
-    setTransactions((prev) => [...prev, ...allNew]);
+    const categorizedNew = allNew.map((t) => {
+      if (t.bucket) return t; // already auto-detected as Income
+      const match = matchRule(t.description, rules);
+      if (!match) return t;
+      return { ...t, bucket: match.bucket, category: t.category || match.category };
+    });
+
+    setTransactions((prev) => [...prev, ...categorizedNew]);
     setResults(allResults);
     setBusy(false);
   }
