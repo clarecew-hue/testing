@@ -48,6 +48,16 @@ export interface Bill {
 export interface ChecklistState {
   week1: Record<number, boolean>;
   week2: Record<number, boolean>;
+  week3: Record<number, boolean>;
+  week4: Record<number, boolean>;
+}
+
+export interface ResetScorecard {
+  needs: number | "";
+  wants: number | "";
+  debt: number | "";
+  futureYou: number | "";
+  weeklySpendable: number | "";
 }
 
 export interface AppData {
@@ -55,5 +65,6 @@ export interface AppData {
   rules: Rule[];
   bills: Bill[];
   checklist: ChecklistState;
+  beforeReset: ResetScorecard;
   importedAccounts: string[];
 }
