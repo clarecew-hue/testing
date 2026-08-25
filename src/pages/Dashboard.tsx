@@ -11,12 +11,28 @@ import {
   unbucketedCount,
 } from "../lib/calc";
 import { money, moneyPrecise, pct } from "../lib/format";
-import { BUCKET_COLORS, type Bucket } from "../types";
+import { BUCKET_COLORS, type Bucket, type ResetScorecard } from "../types";
 
 const SPENDING_BUCKETS: Exclude<Bucket, "" | "Income">[] = ["Needs", "Wants", "Debt", "Future You"];
 
+const WEEK3_ITEMS = [
+  "Know my weekly spendable number (see Your One Number above)",
+  "Moved that amount to a separate account or card for the week",
+  "Spent guilt-free from ONLY that account — nothing else",
+  "When it hit $0, stopped until next week — no judgment",
+  "Used the 24-hour rule on any unplanned purchase over $50",
+];
+
+const WEEK4_ITEMS = [
+  "Reviewed the month and noted which bucket surprised me most",
+  "Picked ONE leak category and set a specific cap for next month",
+  "Named my savings account after its purpose",
+  "Put a monthly Money Date on the calendar — same day, every month",
+  "Thought about what I want my money to build, long-term",
+];
+
 export default function Dashboard() {
-  const { transactions } = useAppData();
+  const { transactions, checklist, setChecklist, beforeReset, setBeforeReset } = useAppData();
   const fullRange = useMemo(() => fullDateRange(transactions), [transactions]);
 
   const [from, setFrom] = useState(fullRange.from);
@@ -40,6 +56,25 @@ export default function Dashboard() {
   const missingBuckets = unbucketedCount(transactions);
 
   const donutData = SPENDING_BUCKETS.map((b) => ({ name: b, value: totals[b] })).filter((d) => d.value > 0);
+
+  const scorecardRows: { key: keyof ResetScorecard; label: string; after: number }[] = [
+    { key: "needs", label: "Needs", after: totals.Needs },
+    { key: "wants", label: "Wants", after: totals.Wants },
+    { key: "debt", label: "Debt", after: totals.Debt },
+    { key: "futureYou", label: "Future You", after: totals["Future You"] },
+    { key: "weeklySpendable", label: "Weekly spendable number", after: weeklySafe },
+  ];
+
+  function updateBeforeReset(key: keyof ResetScorecard, value: string) {
+    setBeforeReset((prev) => ({ ...prev, [key]: value === "" ? "" : parseFloat(value) }));
+  }
+
+  function toggleWeek(week: "week3" | "week4", index: number) {
+    setChecklist((prev) => ({
+      ...prev,
+      [week]: { ...(prev[week] ?? {}), [index]: !prev[week]?.[index] },
+    }));
+  }
 
   return (
     <div className="mx-auto max-w-5xl space-y-6 pb-16">
@@ -178,6 +213,85 @@ export default function Dashboard() {
               ))}
             </div>
           )}
+        </Card>
+      </div>
+
+      <Card>
+        <h2 className="mb-1 text-lg font-semibold text-[#0D4A4B]">Your Reset Scorecard</h2>
+        <p className="mb-3 text-sm text-[#0D4A4B]/60">
+          Week 4: fill in what things looked like before you started — "After Reset" updates itself from
+          your data above.
+        </p>
+        <div className="overflow-x-auto">
+          <table className="w-full min-w-[420px] text-sm">
+            <thead>
+              <tr className="border-b border-black/10 text-left text-xs uppercase tracking-wide text-[#0D4A4B]/60">
+                <th className="py-2 pr-2">Bucket</th>
+                <th className="py-2 pr-2">Before Reset</th>
+                <th className="py-2">After Reset</th>
+              </tr>
+            </thead>
+            <tbody>
+              {scorecardRows.map((row) => (
+                <tr key={row.key} className="border-b border-black/5 last:border-0">
+                  <td className="py-2 pr-2 font-medium text-[#0D4A4B]">{row.label}</td>
+                  <td className="py-2 pr-2">
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={beforeReset[row.key]}
+                      onChange={(e) => updateBeforeReset(row.key, e.target.value)}
+                      placeholder="$"
+                      className="w-28 rounded-lg border border-black/10 bg-white px-2 py-1.5"
+                    />
+                  </td>
+                  <td className="py-2 font-semibold text-[#0D4A4B]">{money(row.after)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </Card>
+
+      <div className="grid gap-6 lg:grid-cols-2">
+        <Card style={{ backgroundColor: "rgba(253,243,192,0.4)" }}>
+          <h2 className="text-lg font-semibold text-[#0D4A4B]">Week 3 Checklist</h2>
+          <p className="mb-3 text-sm text-[#0D4A4B]/60">One Number to Live By</p>
+          <div className="space-y-2">
+            {WEEK3_ITEMS.map((item, i) => (
+              <label key={i} className="flex cursor-pointer items-start gap-3 rounded-lg bg-white/60 p-3">
+                <input
+                  type="checkbox"
+                  checked={!!checklist.week3?.[i]}
+                  onChange={() => toggleWeek("week3", i)}
+                  className="mt-0.5 h-5 w-5 shrink-0 accent-[#F7D20D]"
+                />
+                <span className={`text-[#0D4A4B] ${checklist.week3?.[i] ? "line-through opacity-60" : ""}`}>
+                  {item}
+                </span>
+              </label>
+            ))}
+          </div>
+        </Card>
+
+        <Card style={{ backgroundColor: "rgba(255,220,220,0.4)" }}>
+          <h2 className="text-lg font-semibold text-[#0D4A4B]">Week 4 Checklist</h2>
+          <p className="mb-3 text-sm text-[#0D4A4B]/60">Protect It</p>
+          <div className="space-y-2">
+            {WEEK4_ITEMS.map((item, i) => (
+              <label key={i} className="flex cursor-pointer items-start gap-3 rounded-lg bg-white/60 p-3">
+                <input
+                  type="checkbox"
+                  checked={!!checklist.week4?.[i]}
+                  onChange={() => toggleWeek("week4", i)}
+                  className="mt-0.5 h-5 w-5 shrink-0 accent-[#FF6B6B]"
+                />
+                <span className={`text-[#0D4A4B] ${checklist.week4?.[i] ? "line-through opacity-60" : ""}`}>
+                  {item}
+                </span>
+              </label>
+            ))}
+          </div>
         </Card>
       </div>
     </div>
